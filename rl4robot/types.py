@@ -1,7 +1,8 @@
 """型を定義"""
 
 
-from typing import Generic, NamedTuple, TypeVar
+from os import PathLike
+from typing import Generic, NamedTuple, TypeVar, Union
 
 import numpy as np
 
@@ -17,6 +18,8 @@ __all__ = [
     "ObservationHistArray",
     # 範囲
     "Range",
+    # パス
+    "StrPath",
 ]
 
 
@@ -73,3 +76,10 @@ _T = TypeVar("_T")
 class Range(NamedTuple, Generic[_T]):
     low: _T
     high: _T
+
+
+# ======================================
+# パス
+# ======================================
+
+StrPath = Union[str, PathLike]
