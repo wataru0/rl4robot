@@ -5,11 +5,13 @@ from os import PathLike
 from typing import Generic, NamedTuple, TypeVar, Union
 
 import numpy as np
+import torch
 
 __all__ = [
     # Array
     "ActionArray",
     "ObservationArray",
+    # BatchArray
     # HistArray
     "BoolHistArray",
     "IntHistArray",
@@ -35,6 +37,17 @@ ObservationArray = np.ndarray
 
 
 # ======================================
+# Tensor
+# ======================================
+
+# size=(ac_size, ), dtype=torch.float64
+ActionArray = torch.Tensor
+
+# size=(ob_size, ), dtype=torch.float64
+ObservationArray = torch.Tensor
+
+
+# ======================================
 # HistArray
 # ======================================
 
@@ -52,6 +65,46 @@ ActionHistArray = np.ndarray
 
 # shape=(horizon, ob_size, ), dtype=float
 ObservationHistArray = np.ndarray
+
+
+# ======================================
+# BatchArray
+# ======================================
+
+# shape=(??, ), dtype=bool
+BatchBoolArray = np.ndarray
+
+# shape=(??, ), dtype=int
+BatchIntArray = np.ndarray
+
+# shape=(??, ), dtype=float
+BatchFloatArray = np.ndarray
+
+# shape=(??, ac_size, ), dtype=float
+BatchActionArray = np.ndarray
+
+# shape=(??, ob_size, ), dtype=float
+BatchObservationArray = np.ndarray
+
+
+# ======================================
+# BatchTensor
+# ======================================
+
+# size=(??, ), dtype=bool
+BatchBoolTensor = torch.Tensor
+
+# size=(??, ), dtype=int
+BatchIntTensor = torch.Tensor
+
+# size=(??, ), dtype=torch.float64
+BatchFloatTensor = torch.Tensor
+
+# size=(??, ac_size, ), dtype=torch.float64
+BatchActionTensor = torch.Tensor
+
+# size=(??, ob_size, ), dtype=torch.float64
+BatchObservationTensor = torch.Tensor
 
 
 # ======================================
