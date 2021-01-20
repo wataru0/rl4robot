@@ -57,9 +57,7 @@ class EnvWrapper(Env):
         blackout: bool = False,
         **kwargs,
     ) -> RGBArray:
-        return self.env.render_image(
-            width=width, height=height, blackout=blackout, **kwargs
-        )
+        return self.env.render_image(width=width, height=height, **kwargs)
 
     def render_window(self, **kwargs) -> None:
         return self.env.render_window(**kwargs)
