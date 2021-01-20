@@ -9,6 +9,12 @@ __all__ = [
     # Array
     "ActionArray",
     "ObservationArray",
+    # HistArray
+    "BoolHistArray",
+    "IntHistArray",
+    "FloatHistArray",
+    "ActionHistArray",
+    "ObservationHistArray",
     # 範囲
     "Range",
 ]
@@ -23,6 +29,26 @@ ActionArray = np.ndarray
 
 # shape=(ob_size, ), dtype=float
 ObservationArray = np.ndarray
+
+
+# ======================================
+# HistArray
+# ======================================
+
+# shape=(horizon, ), dtype=bool
+BoolHistArray = np.ndarray
+
+# shape=(horizon, ), dtype=int
+IntHistArray = np.ndarray
+
+# shape=(horizon, ), dtype=float
+FloatHistArray = np.ndarray
+
+# shape=(horizon, ac_size, ), dtype=float
+ActionHistArray = np.ndarray
+
+# shape=(horizon, ob_size, ), dtype=float
+ObservationHistArray = np.ndarray
 
 
 # ======================================
