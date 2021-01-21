@@ -32,6 +32,8 @@ class TrainingLoop:
     _start_time: float
     _iter_start_time: float
     _iter_start_global_steps: float
+    _episode_length_mean: Optional[float]
+    _episode_return_mean: Optional[float]
     _observation: ObservationArray
     _episode_length = 0
     _episode_return = 0.0
@@ -51,6 +53,9 @@ class TrainingLoop:
         self.global_step = 0
         self.global_iter = 0
 
+        self._episode_length_mean = None
+        self._episode_return_mean  = None
+
     def run(self) -> None:
         """訓練ループ"""
 
@@ -66,26 +71,14 @@ class TrainingLoop:
 
             self.global_iter += 1
 
-            episode_length_mean, episode_return_mean = self._collect()
+            self._collect()
 
-            self.trainer.update()
+            self._update()
 
-            if self.logger is not None:
-                self._record_time_log()
-                self._record_stats_log(
-                    episode_length_mean, episode_return_mean
-                )
-                self.trainer.record_log(self.logger)
-                self.logger.dump(self.global_step)
+            self._log()
 
-    def _collect(self) -> Tuple[Optional[float], Optional[float]]:
-        """サンプルを収集
-
-        Returns
-        -------
-        Tuple[Optional[float], Optional[float]]
-            平均エピソード長と平均エピソード収益
-        """
+    def _collect(self) -> None:
+        """サンプルを収集"""
 
         action_low, action_high = self.env.spec.action_range
         episode_lengths: List[int] = []
@@ -113,7 +106,18 @@ class TrainingLoop:
             else:
                 self._observation = env_step.observation
 
-        return _safety_mean(episode_lengths), _safety_mean(episode_returns)
+        self._episode_length_mean = _safety_mean(episode_lengths)
+        self._episode_return_mean = _safety_mean(episode_returns)
+
+    def _update(self) -> None:
+        self.trainer.update()
+
+    def _log(self) -> None:
+        if self.logger is not None:
+            self._record_time_log()
+            self._record_stats_log()
+            self.trainer.record_log(self.logger)
+            self.logger.dump(self.global_step)
 
     def _record_time_log(self) -> None:
         """時間に関するログを記録"""
@@ -138,22 +142,18 @@ class TrainingLoop:
             }
         )
 
-    def _record_stats_log(
-        self,
-        episode_length_mean: Optional[float],
-        episode_return_mean: Optional[float],
-    ) -> None:
+    def _record_stats_log(self) -> None:
         """エピソードの統計に関するログを記録"""
 
         if self.logger is None:
             return
 
-        if episode_length_mean is None or episode_return_mean is None:
-            return
+        if self._episode_length_mean is not None:
+            self.logger.record(
+                "stats/episode_length", self._episode_length_mean
+            )
 
-        self.logger.record_from_dict(
-            {
-                "stats/episode_length": episode_length_mean,
-                "stats/episode_return": episode_return_mean,
-            }
-        )
+        if self._episode_return_mean is not None:
+            self.logger.record(
+                "stats/episode_return", self._episode_return_mean
+            )
