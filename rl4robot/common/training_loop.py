@@ -75,7 +75,8 @@ class TrainingLoop:
 
             self._update()
 
-            self._log()
+            self._record_log()
+            self._dump_log()
 
     def _collect(self) -> None:
         """サンプルを収集"""
@@ -112,11 +113,14 @@ class TrainingLoop:
     def _update(self) -> None:
         self.trainer.update()
 
-    def _log(self) -> None:
-        if self.logger is not None:
+    def _record_log(self) -> None:
+        if self.logger:
             self._record_time_log()
             self._record_stats_log()
             self.trainer.record_log(self.logger)
+
+    def _dump_log(self) -> None:
+        if self.logger:
             self.logger.dump(self.global_step)
 
     def _record_time_log(self) -> None:
