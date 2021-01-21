@@ -1,12 +1,15 @@
 import statistics as stats
 from dataclasses import dataclass
-from typing import Final, List, Tuple
+from pathlib import Path
+from typing import Final, List, Optional, Tuple
 
 import numpy as np
 import tqdm
 
 from rl4robot.agents import Agent
+from rl4robot.common.video_writer import VideoWriter
 from rl4robot.envs import Env
+from rl4robot.types import StrPath
 
 
 @dataclass(frozen=True)
@@ -31,11 +34,22 @@ class EvaluatingLoop:
     env: Final[Env]
     agent: Final[Agent]
     num_episodes: Final[int]
+    video_dir: Final[Optional[Path]]
+    num_videos: Final[int]
 
-    def __init__(self, env: Env, agent: Agent, num_episodes: int) -> None:
+    def __init__(
+        self,
+        env: Env,
+        agent: Agent,
+        num_episodes: int,
+        video_dir: Optional[StrPath] = None,
+        num_videos: int = 0,
+    ) -> None:
         self.env = env
         self.agent = agent
         self.num_episodes = num_episodes
+        self.video_dir = Path(video_dir) if video_dir else None
+        self.num_videos = num_videos
 
     def run(self) -> EvaluatingResult:
         """評価ループを実行する。"""
@@ -43,8 +57,14 @@ class EvaluatingLoop:
         episode_lengths: List[int] = []
         episode_returns: List[float] = []
 
-        for _ in tqdm.tqdm(range(self.num_episodes)):
-            episode_length, episode_return = self._collect_episode()
+        for i in tqdm.tqdm(range(self.num_episodes)):
+            video_path = (
+                self.video_dir / f"episode-{i + 1:03}.mp4"
+                if i < self.num_videos
+                else None
+            )
+
+            episode_length, episode_return = self._collect_episode(video_path)
 
             episode_lengths.append(episode_length)
             episode_returns.append(episode_return)
@@ -53,7 +73,9 @@ class EvaluatingLoop:
             episode_lengths=episode_lengths, episode_returns=episode_returns
         )
 
-    def _collect_episode(self) -> Tuple[int, float]:
+    def _collect_episode(
+        self, video_path: Optional[StrPath] = None
+    ) -> Tuple[int, float]:
         """１エピソード評価する。
 
         Returns
@@ -62,6 +84,8 @@ class EvaluatingLoop:
             エピソード長とエピソード収益
         """
 
+        video_writer = VideoWriter(video_path) if video_path else None
+
         action_low, action_high = self.env.spec.action_range
         episode_done = False
         episode_length = 0
@@ -69,7 +93,12 @@ class EvaluatingLoop:
 
         observation = self.env.reset()
 
-        while not episode_done:
+        while True:
+            if video_writer:
+                rgb_array = self.env.render_image()
+                video_writer.write(rgb_array)
+            if episode_done:
+                break
             action = self.agent.act(observation)
             action = np.clip(action, action_low, action_high)
             env_step = self.env.step(action)
@@ -78,5 +107,8 @@ class EvaluatingLoop:
             episode_done = env_step.episode_done
             episode_length += 1
             episode_return += env_step.reward
+
+        if video_writer:
+            video_writer.close()
 
         return episode_length, episode_return
