@@ -1,17 +1,21 @@
 import math
+from pathlib import Path
 from typing import Final, List
 
 import torch
+import os
 import torch.distributions as Dist
 import torch.nn as nn
 
 from rl4robot.common.mlp import Mlp, make_mlp
+from rl4robot.common.save_state import CanLoadState, CanSaveState
 from rl4robot.common.weight_init import orthogonal_init
 from rl4robot.types import (
     ActionArray,
     BatchActionTensor,
     BatchFloatTensor,
     BatchObservationTensor,
+    StrPath,
 )
 
 __all__ = [
@@ -19,7 +23,7 @@ __all__ = [
 ]
 
 
-class ActorCritic(nn.Module):
+class ActorCritic(nn.Module, CanSaveState, CanLoadState):
     observation_size: Final[int]
     action_size: Final[int]
     _actor_mlp: Final[Mlp]
@@ -97,6 +101,14 @@ class ActorCritic(nn.Module):
         self, observations_: BatchObservationTensor
     ) -> BatchFloatTensor:
         return self._value_mlp(observations_)
+
+    def save_state(self, path: StrPath) -> None:
+        path = Path(path)
+        os.makedirs(path.parent, exist_ok=True)
+        torch.save(self.state_dict(), path)
+
+    def load_state(self, path: StrPath) -> None:
+        self.load_state_dict(torch.load(path))
 
     @staticmethod
     def _make_actor_mlp(
