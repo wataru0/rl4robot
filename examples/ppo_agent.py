@@ -3,9 +3,7 @@ from pathlib import Path
 
 import gym
 
-from rl4robot.agents import PpoTrainer
-from rl4robot.agents.ppo.actor_critic import ActorCritic
-from rl4robot.agents.ppo.agent import PpoAgent
+from rl4robot.agents import ActorCritic, PpoAgent, PpoTrainer
 from rl4robot.common.evaluating_loop import EvaluatingLoop
 from rl4robot.common.loggers import (
     ConsoleLogger,
