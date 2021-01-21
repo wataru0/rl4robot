@@ -1,7 +1,7 @@
 """環境ラッパーのデフォルト実装"""
 
 
-from typing import Final, Optional
+from typing import Optional
 
 from rl4robot.types import ActionArray, ObservationArray, RGBArray
 
@@ -15,7 +15,7 @@ __all__ = [
 class EnvWrapper(Env):
     """環境ラッパーのデフォルト実装"""
 
-    env: Final[Env]
+    env: Env
 
     def __init__(self, env: Env) -> None:
         """環境ラッパーのデフォルト実装
